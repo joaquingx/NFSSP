@@ -6,16 +6,15 @@
 #define NFSSP_SCHEDULE_H
 #include <vector>
 using namespace std;
-typedef unsigned int uint;
 
 struct pseudoJob{
-    uint begin, end, job;
-    pseudoJob(uint nMachines, uint job){ // possible thrash
+    int begin, end, job;
+    pseudoJob(int nMachines, int job){ // possible thrash
         this->begin = 0;
         this->end = nMachines;
         this->job = job;
     }
-    pseudoJob(uint begin, uint end, uint job){
+    pseudoJob(int begin, int end, int job){
         this->begin = begin;
         this->end = end;
         this->job = job;
@@ -23,12 +22,12 @@ struct pseudoJob{
 };
 
 struct machineInfo{
-    uint actTotalFlow, lastTimeJob;
+    int actTotalFlow, lastTimeJob;
     machineInfo(){
         this->actTotalFlow = 0;
         this->lastTimeJob = 0;
     }
-    machineInfo(uint actTotalFlow, uint lastTimeJob){
+    machineInfo(int actTotalFlow, int lastTimeJob){
         this->actTotalFlow = actTotalFlow;
         this->lastTimeJob = lastTimeJob;
     }
@@ -36,16 +35,20 @@ struct machineInfo{
 
 
 class Schedule {
-    vector< vector<uint> > instance;
+    vector< vector<int> > instance;
     vector<pseudoJob> schedule; // maybe I can use a better data structure
-    uint nMachines,nJobs;
-    uint getLastTime(vector< machineInfo > & machineState, uint actMachine);
+    int nMachines,nJobs;
+    int getLastTime(vector< machineInfo > & machineState, int actMachine);
 public:
-    Schedule(uint nMachines, uint nJobs, vector< vector<uint> > & instance);
-    bool addPseudoJob(uint begin, uint end, uint job);
-    uint getTotalFlowTime();
+    Schedule(int nMachines, int nJobs, vector< vector<int> > & instance);
+    bool addPseudoJob(int begin, int end, int job);
+    bool addPseudoJob(pseudoJob nJob);
+    int getPermutationFlowTime(int indexMachine, int indexJob);
+    int getTotalFlowTime();
     void printGantt(); // expensive function possibly
     void printPermutationSchedule();
+    int getSize();
+    pseudoJob getPseudoJob(int x);
 };
 
 

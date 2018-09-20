@@ -10,21 +10,38 @@ class NEH{
     Schedule * initialSchedule;
 };
 
+
+// PERMUTATION FLOW SHOP SCHEDULING CONSTRUCTIVE
+class LR{
+    Schedule * resultSchedule;
+    int nMachines, nJobs;
+    vector < vector< int> > instance;
+    double weightFunction(int iJob, int iMachine);
+    double wTotalMachineiTime(Schedule &S, pseudoJob nextElement);
+    double artificialFlowTime(Schedule &S, pseudoJob nextElement, vector<int> & U);
+    Schedule localLR(Schedule & S, vector<int> U);
+public:
+    LR(int nMachines, int nJobs, vector<vector < int> > & instance);
+//    LR();
+    Schedule getLR(int x); // General x LR's
+};
+
+
 class randomPermutation{
     Schedule * initialSchedule;
-    uint nMachines,nJobs;
-    vector< vector <uint> >  instance;
+    int nMachines,nJobs;
+    vector< vector <int> >  instance;
 public:
-    randomPermutation(uint nMachines, uint nJobs, vector<vector < uint> > & instance);
+    randomPermutation(int nMachines, int nJobs, vector<vector < int> > & instance);
     Schedule getRandomPermutation();
 };
 
 class arbitraryPermutation{
     Schedule * initialSchedule;
-    uint nMachines,nJobs;
-    vector< vector <uint> >  instance;
+    int nMachines,nJobs;
+    vector< vector <int> >  instance;
 public:
-    arbitraryPermutation(uint nMachines, uint nJobs, vector<vector < uint> > & instance);
+    arbitraryPermutation(int nMachines, int nJobs, vector<vector < int> > & instance);
     Schedule getArbitraryPermutation();
 };
 

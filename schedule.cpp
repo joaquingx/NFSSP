@@ -5,35 +5,40 @@
 #include <iostream>
 #include "schedule.h"
 
-Schedule::Schedule(uint nMachines, uint nJobs, vector< vector<uint> > & instance) {
+Schedule::Schedule(int nMachines, int nJobs, vector< vector<int> > & instance) {
     this->nMachines = nMachines;
     this->nJobs = nJobs;
     this->instance = instance;
 }
 
-bool Schedule::addPseudoJob(uint begin, uint end, uint job) {
+bool Schedule::addPseudoJob(int begin, int end, int job) {
     pseudoJob actJob(begin,end,job);
     auto error = schedule.emplace_back(actJob);
     return true;
 }
+bool Schedule::addPseudoJob(pseudoJob nJob) {
+    auto error = schedule.emplace_back(nJob);
+    return true;
+
+}
 
 
 // Could be a error due how upperLastJob is obtained
-uint Schedule::getLastTime(vector<machineInfo> &machineState, uint actMachine) {
-    uint myLastJob = machineState[actMachine].lastTimeJob;
+int Schedule::getLastTime(vector<machineInfo> &machineState, int actMachine) {
+    int myLastJob = machineState[actMachine].lastTimeJob;
     if(actMachine == 0)
         return myLastJob;
-    uint upperLastJob = machineState[actMachine-1].lastTimeJob;
+    int upperLastJob = machineState[actMachine-1].lastTimeJob;
     return max(myLastJob, upperLastJob);
 }
 //maybe can be improved with taillard?
 // iJob: actual index pseudo job
 // iMachine: actual index Machine
-uint Schedule::getTotalFlowTime() {
+int Schedule::getTotalFlowTime() {
     vector<machineInfo> tCompletion(nMachines);
-    uint rTotalFlowTime = 0;
+    int rTotalFlowTime = 0;
     for (auto apJob : schedule) {
-        for (uint iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
+        for (int iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
             tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion,iMachine) + instance[iMachine][apJob.job];
             tCompletion[iMachine].actTotalFlow += tCompletion[iMachine].lastTimeJob;
             rTotalFlowTime = max(rTotalFlowTime,tCompletion[iMachine].actTotalFlow);
@@ -45,10 +50,10 @@ uint Schedule::getTotalFlowTime() {
 void Schedule::printGantt() {
     vector< vector< char > > chart(nMachines);
     vector<machineInfo> tCompletion(nMachines);
-    uint rTotalFlowTime = 0;
+    int rTotalFlowTime = 0;
     for (auto apJob : schedule) {
-        for (uint iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
-            uint lastTime = getLastTime(tCompletion,iMachine);
+        for (int iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
+            int lastTime = getLastTime(tCompletion,iMachine);
 //            cout << "Machine" << iMachine << "on Job" << apJob.job << ": " << lastTime << "\n";
             if(iMachine > 0) {
                 for (int iDraw = 0; iDraw < lastTime-tCompletion[iMachine].lastTimeJob; iDraw++)
@@ -67,9 +72,9 @@ void Schedule::printGantt() {
 
 
     cout << "\n*********************Gantt Printed*********************\n\n";
-    uint maxSize = 0;
+    int maxSize = 0;
     for (auto &i : chart)
-        maxSize = max(maxSize, uint(i.size()));
+        maxSize = max(maxSize, int(i.size()));
     for(int i = 0 ; i < chart.size(); ++i){
         cout << "M" << i << ": ";
         for(int j = 0 ; j < maxSize; ++j){
@@ -104,6 +109,37 @@ void Schedule::printPermutationSchedule() {
     }
     cout << "\n";
 }
+
+int Schedule::getSize() {
+    return int(schedule.size());
+}
+
+pseudoJob Schedule::getPseudoJob(int x) {
+    return schedule[x];
+}
+
+//Assuming good input always, works  only w permutation fssp
+int Schedule::getPermutationFlowTime(int indexMachine, int indexJob) {
+    if(indexJob < 0){
+        return 0;
+    }
+    vector<machineInfo> tCompletion(nMachines);
+    int iJob=0;
+    for (auto apJob : schedule) {
+        for (int iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
+            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion, iMachine) + instance[iMachine][apJob.job];
+            tCompletion[iMachine].actTotalFlow += tCompletion[iMachine].lastTimeJob;
+            if(iJob == indexJob and iMachine == indexMachine){
+                return tCompletion[iMachine].actTotalFlow;
+            }
+        }
+        ++iJob;
+    }
+
+}
+
+
+
 
 
 

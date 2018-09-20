@@ -8,9 +8,9 @@ typedef vector< vector< uint > > iType;
 //instance: nMachines Rows, nJobs Colums
 
 int main() {
-    uint nMachines,nJobs;
+    int nMachines,nJobs;
     cin >> nMachines >> nJobs;
-    vector< vector<uint> > instance(nMachines, vector<uint>(nJobs));
+    vector< vector<int> > instance(nMachines, vector<int>(nJobs));
     //traverse matrix
     for(int i = 0 ; i < nMachines; ++i){
         for(int j = 0 ; j < nJobs; ++j){
@@ -18,10 +18,12 @@ int main() {
         }
     }
     randomPermutation r(nMachines,nJobs,instance);
-//    arbitraryPermutation a(nMachines,nJobs,instance);
-    Schedule s = r.getRandomPermutation();
+    LR lr(nMachines,nJobs,instance);
+    arbitraryPermutation a(nMachines,nJobs,instance);
+//    Schedule s = r.getRandomPermutation();
+    Schedule s = lr.getLR(3);
     s.printPermutationSchedule();
     s.printGantt();
-    cout << "My clear mehtod obtains: "  << s.getTotalFlowTime() << "\n";
+    cout << "Total Flowtime: "  << s.getTotalFlowTime() << "\n";
     return 0;
 }
