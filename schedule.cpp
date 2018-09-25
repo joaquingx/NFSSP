@@ -138,6 +138,23 @@ int Schedule::getPermutationFlowTime(int indexMachine, int indexJob) {
 
 }
 
+bool Schedule::addPseudoJob(int begin, int end, int job,int  index) {
+    auto actInsertion = schedule.begin() + index;
+    pseudoJob actJob(begin,end,job);
+    if(schedule.size() == 0)
+        schedule.emplace_back(actJob);
+    else
+        auto error = schedule.insert(actInsertion, actJob);
+    return true;
+}
+
+bool Schedule::removePseudoJob(int index) {
+    auto actRemove = schedule.begin() + index;
+    schedule.erase(actRemove);
+    return true;
+}
+
+
 
 
 

@@ -5,11 +5,7 @@
 #ifndef NFSSP_CONSTRUCTIVEHEURISTICS_H
 #define NFSSP_CONSTRUCTIVEHEURISTICS_H
 #include "schedule.h"
-
-class NEH{
-    Schedule * initialSchedule;
-};
-
+#define INF 2000000000
 
 // PERMUTATION FLOW SHOP SCHEDULING CONSTRUCTIVE
 class LR{
@@ -45,6 +41,28 @@ public:
     Schedule getArbitraryPermutation();
 };
 
+
+class NEH{
+    Schedule * initialSchedule;
+    int nMachines, nJobs;
+    vector < vector< int> > instance;
+    void NEHOuterLoop(vector< pair<double, int> > orderedJobs);
+    int NEHInnerLoop(int jobNumber);
+public:
+    NEH(int nMachines, int nJobs, vector< vector< int> > & instance);
+    Schedule getNEH();
+    arbitraryPermutation * a;
+};
+
+
+class LRandNEH{
+    Schedule * initialSchedule;
+    int nMachines, nJobs;
+    vector < vector< int> > instance;
+public:
+    LRandNEH(int nMachines, int nJobs, vector< vector< int> > & instance);
+    Schedule getLRandNEH();
+};
 class constructiveHeuristics {
 
 };

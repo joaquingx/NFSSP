@@ -43,6 +43,10 @@ public:
     Schedule(int nMachines, int nJobs, vector< vector<int> > & instance);
     bool addPseudoJob(int begin, int end, int job);
     bool addPseudoJob(pseudoJob nJob);
+    bool addPseudoJob(int begin, int end, int job, int index);
+    bool removePseudoJob(int index);
+    vector<pseudoJob>::iterator getBegin();
+
     int getPermutationFlowTime(int indexMachine, int indexJob);
     int getTotalFlowTime();
     void printGantt(); // expensive function possibly

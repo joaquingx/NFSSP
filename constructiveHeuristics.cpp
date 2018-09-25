@@ -8,6 +8,7 @@
 #include <iostream>
 #include "constructiveHeuristics.h"
 
+
 randomPermutation::randomPermutation(int nMachines, int nJobs, vector<vector<int> > &instance) {
     this->nMachines = nMachines;
     this->nJobs = nJobs;
@@ -146,3 +147,56 @@ Schedule LR::localLR(Schedule &S, vector<int> U) {
     }
     return S;
 }
+
+Schedule NEH::getNEH() {
+    vector< pair< double, int> > orderedJobs;
+    vector< double >  totalProcessingTimes(nJobs);
+    for(int iMachine = 0 ; iMachine < nMachines ; ++iMachine){
+        for(int iJob = 0; iJob < nJobs ; ++iJob){
+            totalProcessingTimes[iJob] += instance[iMachine][iJob];
+        }
+    }
+
+    for(int iJob = 0 ; iJob < nJobs ; ++iJob){
+        orderedJobs.push_back({totalProcessingTimes[iJob],iJob});
+    }
+    sort(orderedJobs.begin(), orderedJobs.end());
+    NEHOuterLoop(orderedJobs);
+    return (*initialSchedule);
+}
+
+
+
+NEH::NEH(int nMachines, int nJobs, vector<vector<int> > &instance) {
+    this->nMachines = nMachines;
+    this->nJobs = nJobs;
+    this->instance = instance;
+    initialSchedule = new Schedule(nMachines,nJobs,instance);
+}
+
+int NEH::NEHInnerLoop(int jobNumber) {
+    int iWinner = 0, tftWinner = INF;
+    Schedule * copySchedule = initialSchedule;
+    for(int iJobs = 0 ; iJobs < copySchedule->getSize() ; ++iJobs){
+        copySchedule->addPseudoJob(0,nMachines,jobNumber,iJobs);
+        int actualTFT = copySchedule->getTotalFlowTime();
+        if(actualTFT < tftWinner){
+            iWinner = iJobs;
+            tftWinner = actualTFT;
+        }
+        copySchedule->removePseudoJob(iJobs);
+    }
+    return iWinner;
+}
+void NEH::NEHOuterLoop(vector< pair< double, int> > orderedJobs) {
+    //O(n^3*m)
+    // non-descending order better for tft
+    for(int iJobs = nJobs-1 ; iJobs >= 0 ; --iJobs){
+        int jobNumber = orderedJobs[iJobs].second;
+        int posInsert = NEHInnerLoop(jobNumber);
+        initialSchedule->addPseudoJob(0,nMachines,jobNumber,posInsert);
+    }
+}
+
+
+
