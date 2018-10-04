@@ -13,10 +13,12 @@ class LR{
     int nMachines, nJobs;
     vector < vector< int> > instance;
     double weightFunction(int iJob, int iMachine);
+    Schedule localLR(Schedule  S, vector<int> U);
+public:
+    LR();
     double wTotalMachineiTime(Schedule &S, pseudoJob nextElement);
     double artificialFlowTime(Schedule &S, pseudoJob nextElement, vector<int> & U);
-    Schedule localLR(Schedule & S, vector<int> U);
-public:
+    double getIndexFunction(Schedule &S, int iJob, vector<int> &U);
     LR(int nMachines, int nJobs, vector<vector < int> > & instance);
 //    LR();
     Schedule getLR(int x); // General x LR's

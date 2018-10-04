@@ -21,11 +21,13 @@ int main() {
     LR lr(nMachines,nJobs,instance);
     arbitraryPermutation a(nMachines,nJobs,instance);
     NEH n(nMachines,nJobs,instance);
-    Schedule s = r.getRandomPermutation();
-//    Schedule s = lr.getLR(1);
+//    Schedule s = r.getRandomPermutation();
+    Schedule s = lr.getLR(1);
 //    Schedule s = n.getNEH();
+//    Schedule s = a.getArbitraryPermutation();
     s.printPermutationSchedule();
     s.printGantt();
+    cout << s.getSize() << "\n";
     cout << "Total Flowtime: "  << s.getTotalFlowTime() << "\n";
     return 0;
 }

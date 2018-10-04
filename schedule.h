@@ -40,6 +40,7 @@ class Schedule {
     int nMachines,nJobs;
     int getLastTime(vector< machineInfo > & machineState, int actMachine);
 public:
+    Schedule();
     Schedule(int nMachines, int nJobs, vector< vector<int> > & instance);
     bool addPseudoJob(int begin, int end, int job);
     bool addPseudoJob(pseudoJob nJob);

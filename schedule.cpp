@@ -130,7 +130,7 @@ int Schedule::getPermutationFlowTime(int indexMachine, int indexJob) {
             tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion, iMachine) + instance[iMachine][apJob.job];
             tCompletion[iMachine].actTotalFlow += tCompletion[iMachine].lastTimeJob;
             if(iJob == indexJob and iMachine == indexMachine){
-                return tCompletion[iMachine].actTotalFlow;
+                return tCompletion[iMachine].lastTimeJob; // vamos carajo
             }
         }
         ++iJob;
@@ -141,7 +141,7 @@ int Schedule::getPermutationFlowTime(int indexMachine, int indexJob) {
 bool Schedule::addPseudoJob(int begin, int end, int job,int  index) {
     auto actInsertion = schedule.begin() + index;
     pseudoJob actJob(begin,end,job);
-    if(schedule.size() == 0)
+    if(schedule.empty())
         schedule.emplace_back(actJob);
     else
         auto error = schedule.insert(actInsertion, actJob);
@@ -153,6 +153,8 @@ bool Schedule::removePseudoJob(int index) {
     schedule.erase(actRemove);
     return true;
 }
+
+Schedule::Schedule() = default;
 
 
 
