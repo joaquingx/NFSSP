@@ -21,9 +21,9 @@ int main() {
     LR lr(nMachines,nJobs,instance);
     arbitraryPermutation a(nMachines,nJobs,instance);
     NEH n(nMachines,nJobs,instance);
-//    Schedule s = r.getRandomPermutation();
-//    Schedule s = lr.getLR(3);
-    Schedule s = n.getNEH();
+    Schedule s = r.getRandomPermutation();
+//    Schedule s = lr.getLR(1);
+//    Schedule s = n.getNEH();
     s.printPermutationSchedule();
     s.printGantt();
     cout << "Total Flowtime: "  << s.getTotalFlowTime() << "\n";
