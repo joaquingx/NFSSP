@@ -1,13 +1,14 @@
 #include <utility>
 
 #include <random>
-
+#include <assert.h>
 //
 // Created by joaquin on 18/09/18.
 //
 
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include "constructiveHeuristics.h"
 
 
@@ -71,7 +72,11 @@ struct cLR {
     bool operator () (int iJob, int kJob) {
         double fnci = caller->getIndexFunction((*S),iJob,U);
         double fnck = caller->getIndexFunction((*S),kJob,U);
-
+        if(fnci == fnci){ // break ties by IT's
+            double ITi = caller->wTotalMachineiTime((*S),pseudoJob(0,nMachines,iJob));
+            double ITk = caller->wTotalMachineiTime((*S),pseudoJob(0,nMachines,kJob));
+            return ITi < ITk;
+        }
         return fnci < fnck;
     }
     Schedule * S;
@@ -100,23 +105,17 @@ Schedule LR::getLR(int x) {
     double minFlowTime = 100000000;
     Schedule * finalSchedule = new Schedule();
     for(int i = 0 ;i < x ; ++i){
+        vector<int> cpyInitialList = initialList;
         Schedule NSchedule(nMachines,nJobs,instance);
         int jobTaken = initialList[i];
         NSchedule.addPseudoJob(0,nMachines,jobTaken);
-        initialList.erase(find(initialList.begin(), initialList.end(), jobTaken));
-//        for(int i = 0 ; i < initialList.size(); ++i){
-//            cout << initialList[i] << " ";
-//        }
-//        cout << "\n";
-
-//        NSchedule.printPermutationSchedule();
-        NSchedule = localLR(NSchedule,initialList);
+        cpyInitialList.erase(find(cpyInitialList.begin(), cpyInitialList.end(), jobTaken));
+        NSchedule = localLR(NSchedule,cpyInitialList,0);
         double thisTotalTime = NSchedule.getTotalFlowTime();
         if(thisTotalTime < minFlowTime){
             minFlowTime = thisTotalTime;
             (*finalSchedule) = NSchedule;
         }
-        initialList.emplace_back(jobTaken);//error?
     }
     return (*finalSchedule);
 }
@@ -158,8 +157,10 @@ double getDivisor(double n){
 
 double LR::artificialFlowTime(Schedule &S, pseudoJob nextElement,  vector<int> & U) {
     // "Creating" artificial Job
+    assert(S.getSize() + U.size() == nJobs); // Correct number of elements
     double timeJob = 0;
     vector<double> nTimes;
+    int siz = S.getSize();
     for(int iMachine = 0 ; iMachine < nMachines ; ++iMachine) {
         timeJob = 0;
         for (auto iJob : U) {
@@ -182,6 +183,7 @@ double LR::artificialFlowTime(Schedule &S, pseudoJob nextElement,  vector<int> &
 
 double LR::getIndexFunction(Schedule &S, int iJob, vector<int> &U) {
     double IT,AT,fnc;
+//    cout << "\n";
     IT = wTotalMachineiTime(S, pseudoJob(0, nMachines, iJob));
     // Actual schedule + actual job is creating in artificial flowtime process
     AT = artificialFlowTime(S, pseudoJob(0, nMachines, iJob), U);
@@ -189,13 +191,17 @@ double LR::getIndexFunction(Schedule &S, int iJob, vector<int> &U) {
     return fnc;
 }
 
-Schedule LR::localLR(Schedule S, vector<int> U) {
+Schedule LR::localLR(Schedule S, vector<int>& U, int uJobs) {
     double mFnc,fnc;
     int indexJob;
-    while(!U.empty()) {
+    while(U.size() > uJobs) {
 //        cout << "Local S:\n";
 //        S.printPermutationSchedule();
         mFnc = 20000000000;
+//        for(int jobs: U){
+//            cout << jobs << " ";
+//        }
+//        cout << "\n";
         if(U.size() > 1) {// to avoid errors
             for (auto job: U) {
                 fnc = getIndexFunction(S,job,U);
@@ -221,6 +227,23 @@ Schedule LR::localLR(Schedule S, vector<int> U) {
 
 LR::LR() = default;
 
+Schedule NEH::getNEH(Schedule & S, vector<int> & U) {
+    vector< pair< double, int> > orderedJobs;
+    (*initialSchedule) = S;
+    map< double, double >  totalProcessingTimes;
+    for(int iMachine = 0 ; iMachine < nMachines ; ++iMachine){
+        for(int actJob : U){
+            totalProcessingTimes[actJob] += instance[iMachine][actJob];
+        }
+    }
+
+    for(int actJob: U){
+        orderedJobs.emplace_back(totalProcessingTimes[actJob],actJob);
+    }
+    sort(orderedJobs.begin(), orderedJobs.end());
+    NEHOuterLoop(orderedJobs);
+    return (*initialSchedule);
+}
 
 Schedule NEH::getNEH() {
     vector< pair< double, int> > orderedJobs;
@@ -266,8 +289,8 @@ int NEH::NEHInnerLoop(int jobNumber) {
 void NEH::NEHOuterLoop(vector< pair< double, int> > orderedJobs) {
     //O(n^3*m)
     // non-descending order better for tft
-    for(int iJobs = nJobs-1 ; iJobs >= 0 ; --iJobs){
-//    for(int iJobs = 0 ; iJobs < nJobs ; ++iJobs){ // trying
+    for(int iJobs = orderedJobs.size()-1 ; iJobs >= 0 ; --iJobs){
+//    for(int iJobs = 0 ; iJobs < orderedJobs.size() ; ++iJobs){ // trying
         int jobNumber = orderedJobs[iJobs].second;
         int posInsert = NEHInnerLoop(jobNumber);
         initialSchedule->addPseudoJob(0,nMachines,jobNumber,posInsert);
@@ -276,3 +299,55 @@ void NEH::NEHOuterLoop(vector< pair< double, int> > orderedJobs) {
 
 
 
+LRandNEH::LRandNEH(int nMachines, int nJobs, vector<vector<int> > &instance) {
+    this->nMachines = nMachines;
+    this->nJobs = nJobs;
+    this->instance = instance;
+    initialSchedule = new Schedule(nMachines,nJobs,instance);
+}
+
+Schedule LRandNEH::getLRandNEH(int x) {
+    vector<int> initialList(nJobs);
+    //generates 1 to nJobs permutation;
+    generate(initialList.begin(), initialList.end(), []{
+        static int i = 0;
+        return i++;
+    });
+    LR lrCaller(nMachines,nJobs,instance);
+    NEH nehCaller(nMachines,nJobs,instance);
+    // Sorting by index function
+    sort(initialList.begin(), initialList.end(), cLR(nMachines,nJobs,initialList,instance));
+    cout << "Ordered List:\n";
+    for(auto u : initialList){
+        cout << u << " ";
+    }
+    cout << "\n";
+    Schedule * finalSchedule = new Schedule();
+    double minFlowTime = 2000000000;
+    for(int i = 0 ; i < x ; ++i){
+        vector<int> cpyInitialList = initialList;
+        Schedule initialSchedule(nMachines,nJobs,instance);
+
+        // LR Step
+        int jobTaken = initialList[i];
+        initialSchedule.addPseudoJob(0,nMachines,jobTaken);
+        cpyInitialList.erase( find(cpyInitialList.begin(),cpyInitialList.end(),jobTaken) );
+        int portion = nJobs/4;
+        initialSchedule = lrCaller.localLR(initialSchedule,cpyInitialList,portion);
+
+        cout << "Despues:\n";
+        for(int job: cpyInitialList){
+            cout << job << " ";
+        }
+        cout << "\n";
+        //NEH Step
+        initialSchedule = nehCaller.getNEH(initialSchedule,cpyInitialList);
+
+        double thisTotalTime = initialSchedule.getTotalFlowTime();
+        if(thisTotalTime < minFlowTime){
+            minFlowTime = thisTotalTime;
+            (*finalSchedule) = initialSchedule;
+        }
+    }
+    return (*finalSchedule);
+}

@@ -13,13 +13,13 @@ class LR{
     int nMachines, nJobs;
     vector < vector< int> > instance;
     double weightFunction(int iJob, int iMachine);
-    Schedule localLR(Schedule  S, vector<int> U);
 public:
     LR();
+    LR(int nMachines, int nJobs, vector<vector < int> > & instance);
     double wTotalMachineiTime(Schedule &S, pseudoJob nextElement);
     double artificialFlowTime(Schedule &S, pseudoJob nextElement, vector<int> & U);
     double getIndexFunction(Schedule &S, int iJob, vector<int> &U);
-    LR(int nMachines, int nJobs, vector<vector < int> > & instance);
+    Schedule localLR(Schedule  S, vector<int> & U, int uJobs); // S is the initial schedule , assigns U jobs until only uJobs remains.
 //    LR();
     Schedule getLR(int x); // General x LR's
 };
@@ -53,6 +53,7 @@ class NEH{
 public:
     NEH(int nMachines, int nJobs, vector< vector< int> > & instance);
     Schedule getNEH();
+    Schedule getNEH(Schedule & S, vector<int> & U);
     arbitraryPermutation * a;
 };
 
@@ -63,8 +64,9 @@ class LRandNEH{
     vector < vector< int> > instance;
 public:
     LRandNEH(int nMachines, int nJobs, vector< vector< int> > & instance);
-    Schedule getLRandNEH();
+    Schedule getLRandNEH(int x);
 };
+
 class constructiveHeuristics {
 
 };

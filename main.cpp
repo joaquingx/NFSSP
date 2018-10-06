@@ -21,10 +21,12 @@ int main() {
     LR lr(nMachines,nJobs,instance);
     arbitraryPermutation a(nMachines,nJobs,instance);
     NEH n(nMachines,nJobs,instance);
+    LRandNEH lrneh(nMachines,nJobs,instance);
 //    Schedule s = r.getRandomPermutation();
-    Schedule s = lr.getLR(1);
+//    Schedule s = lr.getLR(1);
 //    Schedule s = n.getNEH();
 //    Schedule s = a.getArbitraryPermutation();
+    Schedule s = lrneh.getLRandNEH(1);
     s.printPermutationSchedule();
     s.printGantt();
     cout << s.getSize() << "\n";
