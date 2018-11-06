@@ -5,29 +5,69 @@
 #ifndef NFSSP_CONSTRUCTIVEHEURISTICS_H
 #define NFSSP_CONSTRUCTIVEHEURISTICS_H
 #include "schedule.h"
+#include "Matrix.h"
 #define INF 2000000000
 
-// PERMUTATION FLOW SHOP SCHEDULING CONSTRUCTIVE
-class LR{
+class cHeuristic{
+protected:
     Schedule * resultSchedule;
     int nMachines, nJobs;
-    vector < vector< int> > instance;
-    double weightFunction(int iJob, int iMachine);
+    Matrix instance;
 public:
-    LR();
-    LR(int nMachines, int nJobs, vector<vector < int> > & instance);
+    cHeuristic(int nMachines, int nJobs, const Matrix & instance);
+};
+
+
+// PERMUTATION FLOW SHOP SCHEDULING CONSTRUCTIVE
+class LR : public cHeuristic{
+//    using cHeuristic::cHeuristic; // inherits constructor
+public:
+//    LR();
+LR(int nMachine, int nJobs, const Matrix& instance);
     double wTotalMachineiTime(Schedule &S, pseudoJob nextElement);
     double artificialFlowTime(Schedule &S, pseudoJob nextElement, vector<int> & U);
     double getIndexFunction(Schedule &S, int iJob, vector<int> &U);
     Schedule localLR(Schedule  S, vector<int> & U, int uJobs); // S is the initial schedule , assigns U jobs until only uJobs remains.
-//    LR();
+    double weightFunction(int iJob, int iMachine);
     Schedule getLR(int x); // General x LR's
 };
+
+class randomPermutation : public cHeuristic{
+    using cHeuristic::cHeuristic;
+public:
+    Schedule getRandomPermutation();
+};
+
+class arbitraryPermutation : public cHeuristic{
+    using cHeuristic::cHeuristic;
+public:
+    Schedule getArbitraryPermutation();
+};
+
+
+class NEH : public cHeuristic{
+    using cHeuristic::cHeuristic;
+private:
+    void NEHOuterLoop(vector< pair<double, int> > orderedJobs);
+    int NEHInnerLoop(int jobNumber);
+public:
+    Schedule getNEH();
+    Schedule getNEH(Schedule & S, vector<int> & U);
+    arbitraryPermutation * a;
+};
+
+
+class LRandNEH: public cHeuristic{
+    using cHeuristic::cHeuristic;
+public:
+    Schedule getLRandNEH(int x);
+};
+
 
 //class FF{
 //    Schedule * resultSchedule;
 //    int nMachines, nJobs;
-//    vector < vector< int> > instance;
+//    Matrixinstance;
 //    double weightFunction(int iJob, int iMachine);
 //public:
 //    FF(int nMachines, int nJobs, vector<vector < int> > & instance);
@@ -38,52 +78,6 @@ public:
 //    Schedule getLR(int x); // General x LR's
 //};
 //
-
-class randomPermutation{
-    Schedule * initialSchedule;
-    int nMachines,nJobs;
-    vector< vector <int> >  instance;
-public:
-    randomPermutation(int nMachines, int nJobs, vector<vector < int> > & instance);
-    Schedule getRandomPermutation();
-};
-
-class arbitraryPermutation{
-    Schedule * initialSchedule;
-    int nMachines,nJobs;
-    vector< vector <int> >  instance;
-public:
-    arbitraryPermutation(int nMachines, int nJobs, vector<vector < int> > & instance);
-    Schedule getArbitraryPermutation();
-};
-
-
-class NEH{
-    Schedule * initialSchedule;
-    int nMachines, nJobs;
-    vector < vector< int> > instance;
-    void NEHOuterLoop(vector< pair<double, int> > orderedJobs);
-    int NEHInnerLoop(int jobNumber);
-public:
-    NEH(int nMachines, int nJobs, vector< vector< int> > & instance);
-    Schedule getNEH();
-    Schedule getNEH(Schedule & S, vector<int> & U);
-    arbitraryPermutation * a;
-};
-
-
-class LRandNEH{
-    Schedule * initialSchedule;
-    int nMachines, nJobs;
-    vector < vector< int> > instance;
-public:
-    LRandNEH(int nMachines, int nJobs, vector< vector< int> > & instance);
-    Schedule getLRandNEH(int x);
-};
-
-class constructiveHeuristics {
-
-};
 
 
 #endif //NFSSP_CONSTRUCTIVEHEURISTICS_H

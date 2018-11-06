@@ -5,7 +5,7 @@
 #include <iostream>
 #include "schedule.h"
 
-Schedule::Schedule(int nMachines, int nJobs, vector< vector<int> > & instance) {
+Schedule::Schedule(int nMachines, int nJobs, const Matrix & instance) {
     this->nMachines = nMachines;
     this->nJobs = nJobs;
     this->instance = instance;
@@ -39,7 +39,7 @@ int Schedule::getTotalFlowTime() {
     int rTotalFlowTime = 0;
     for (auto apJob : schedule) {
         for (int iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
-            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion,iMachine) + instance[iMachine][apJob.job];
+            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion,iMachine) + instance(iMachine,apJob.job);
             tCompletion[iMachine].actTotalFlow += tCompletion[iMachine].lastTimeJob;
             rTotalFlowTime = max(rTotalFlowTime,tCompletion[iMachine].actTotalFlow);
         }
@@ -59,12 +59,12 @@ void Schedule::printGantt() {
                 for (int iDraw = 0; iDraw < lastTime-tCompletion[iMachine].lastTimeJob; iDraw++)
                     chart[iMachine].emplace_back('-');
             }
-            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion,iMachine) + instance[iMachine][apJob.job];
+            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion,iMachine) + instance(iMachine,apJob.job);
             tCompletion[iMachine].actTotalFlow += tCompletion[iMachine].lastTimeJob;
             rTotalFlowTime = max(rTotalFlowTime,tCompletion[iMachine].actTotalFlow);
 
             //draw
-            for(int  iDraw = 0 ;  iDraw < instance[iMachine][apJob.job]; iDraw++) {
+            for(int  iDraw = 0 ;  iDraw < instance(iMachine,apJob.job); iDraw++) {
                 chart[iMachine].emplace_back(char(apJob.job + '0'));
             }
         }
@@ -127,7 +127,7 @@ int Schedule::getPermutationFlowTime(int indexMachine, int indexJob) {
     int iJob=0;
     for (auto apJob : schedule) {
         for (int iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
-            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion, iMachine) + instance[iMachine][apJob.job];
+            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion, iMachine) + instance(iMachine,apJob.job);
             tCompletion[iMachine].actTotalFlow += tCompletion[iMachine].lastTimeJob;
             if(iJob == indexJob and iMachine == indexMachine){
                 return tCompletion[iMachine].lastTimeJob;

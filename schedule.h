@@ -5,6 +5,7 @@
 #ifndef NFSSP_SCHEDULE_H
 #define NFSSP_SCHEDULE_H
 #include <vector>
+#include "Matrix.h"
 using namespace std;
 
 struct pseudoJob{
@@ -35,13 +36,13 @@ struct machineInfo{
 
 
 class Schedule {
-    vector< vector<int> > instance;
+    Matrix instance;
     vector<pseudoJob> schedule; // maybe I can use a better data structure
     int nMachines,nJobs;
     int getLastTime(vector< machineInfo > & machineState, int actMachine);
 public:
     Schedule();
-    Schedule(int nMachines, int nJobs, vector< vector<int> > & instance);
+    Schedule(int nMachines, int nJobs, const Matrix & instance);
     bool addPseudoJob(int begin, int end, int job);
     bool addPseudoJob(pseudoJob nJob);
     bool addPseudoJob(int begin, int end, int job, int index);
