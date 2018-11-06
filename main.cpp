@@ -1,7 +1,11 @@
 #include <iostream>
 #include "schedule.h"
 #include "constructiveHeuristics.h"
+#include "chrono"
+#include <iomanip>
+
 #define MAXINSTANCE 500
+#define NANOSECOND 1000000000
 using namespace std;
 typedef vector< vector< uint > > iType;
 
@@ -9,7 +13,7 @@ typedef vector< vector< uint > > iType;
 // TODO: change matrix traverse order.
 int main() {
     int nMachines,nJobs;
-    cin >> nMachines >> nJobs;
+    cin >>  nJobs >> nMachines;
     vector< vector<int> > instance(nMachines, vector<int>(nJobs));
     //traverse matrix
     for(int i = 0 ; i < nMachines; ++i){
@@ -17,19 +21,33 @@ int main() {
             cin >> instance[i][j];
         }
     }
-    randomPermutation r(nMachines,nJobs,instance);
-    LR lr(nMachines,nJobs,instance);
-    arbitraryPermutation a(nMachines,nJobs,instance);
-    NEH n(nMachines,nJobs,instance);
-    LRandNEH lrneh(nMachines,nJobs,instance);
-//    Schedule s = r.getRandomPermutation();
-//    Schedule s = lr.getLR(1);
-//    Schedule s = n.getNEH();
-//    Schedule s = a.getArbitraryPermutation();
-    Schedule s = lrneh.getLRandNEH(1);
-    s.printPermutationSchedule();
-    s.printGantt();
-    cout << s.getSize() << "\n";
-    cout << "Total Flowtime: "  << s.getTotalFlowTime() << "\n";
+    int option; cin >> option;
+// Option 0: LR
+// Option 1: NEH
+// Option 2: LR-NEH
+    if(option == 0){
+        int nSequences; cin >> nSequences;
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        LR lr(nMachines,nJobs,instance);
+        cout << "Total Flowtime = " <<  lr.getLR(nSequences).getTotalFlowTime() << "\n";
+        std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
+        cout << "Time difference = " << std::fixed << setprecision(10) << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() <<" nanoseconds\n";
+    }
+    else if(option == 1){
+        NEH n(nMachines,nJobs,instance);
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        cout << "Total Flowtime = " <<  n.getNEH().getTotalFlowTime() << "\n";
+        std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
+        cout << "Time difference = " << std::fixed << setprecision(10) << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() <<" nanoseconds\n";
+    }
+    else if(option == 2){
+        int nSequences; cin >> nSequences;
+        LRandNEH lrneh(nMachines,nJobs,instance);
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        cout << "Total Flowtime = " <<  lrneh.getLRandNEH(nSequences).getTotalFlowTime() << "\n";
+        std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
+        cout << "Time difference = " << std::fixed << setprecision(10) << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() <<" nanoseconds\n";
+
+    }
     return 0;
 }

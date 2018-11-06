@@ -130,7 +130,7 @@ int Schedule::getPermutationFlowTime(int indexMachine, int indexJob) {
             tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion, iMachine) + instance[iMachine][apJob.job];
             tCompletion[iMachine].actTotalFlow += tCompletion[iMachine].lastTimeJob;
             if(iJob == indexJob and iMachine == indexMachine){
-                return tCompletion[iMachine].lastTimeJob; // vamos carajo
+                return tCompletion[iMachine].lastTimeJob;
             }
         }
         ++iJob;

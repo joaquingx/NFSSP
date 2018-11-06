@@ -97,11 +97,11 @@ Schedule LR::getLR(int x) {
     // Ordenando segun index function
     sort(initialList.begin(), initialList.end(), cLR(nMachines,nJobs,initialList,instance));
 
-    cout << "Ordered List:\n";
-    for(auto u : initialList){
-        cout << u << " ";
-    }
-    cout << "\n";
+//    cout << "Ordered List:\n";
+//    for(auto u : initialList){
+//        cout << u << " ";
+//    }
+//    cout << "\n";
     double minFlowTime = 100000000;
     Schedule * finalSchedule = new Schedule();
     for(int i = 0 ;i < x ; ++i){
@@ -317,11 +317,11 @@ Schedule LRandNEH::getLRandNEH(int x) {
     NEH nehCaller(nMachines,nJobs,instance);
     // Sorting by index function
     sort(initialList.begin(), initialList.end(), cLR(nMachines,nJobs,initialList,instance));
-    cout << "Ordered List:\n";
-    for(auto u : initialList){
-        cout << u << " ";
-    }
-    cout << "\n";
+//    cout << "Ordered List:\n";
+//    for(auto u : initialList){
+//        cout << u << " ";
+//    }
+//    cout << "\n";
     Schedule * finalSchedule = new Schedule();
     double minFlowTime = 2000000000;
     for(int i = 0 ; i < x ; ++i){
@@ -335,11 +335,11 @@ Schedule LRandNEH::getLRandNEH(int x) {
         int portion = nJobs/4;
         initialSchedule = lrCaller.localLR(initialSchedule,cpyInitialList,portion);
 
-        cout << "Despues:\n";
-        for(int job: cpyInitialList){
-            cout << job << " ";
-        }
-        cout << "\n";
+//        cout << "Despues:\n";
+//        for(int job: cpyInitialList){
+//            cout << job << " ";
+//        }
+//        cout << "\n";
         //NEH Step
         initialSchedule = nehCaller.getNEH(initialSchedule,cpyInitialList);
 
