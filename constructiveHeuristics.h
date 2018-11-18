@@ -42,12 +42,12 @@ class LR : public cHeuristic{
     using cHeuristic::cHeuristic; // inherits constructor
 public:
 //    LR();
-    double wTotalMachineiTime(Schedule& S, pseudoJob nextElement);
-    double artificialFlowTime(Schedule& S, pseudoJob nextElement, vector<int> & U);
-    double getIndexFunction(Schedule& S, int iJob, vector<int> &U);
-    Schedule *localLR(Schedule&  S, vector<int> & U, int uJobs); // S is the initial schedule , assigns U jobs until only uJobs remains.
-    double weightFunction(int iJob, int iMachine);
-    Schedule * getLR(int x); // General x LR's
+    double wTotalMachineiTime(const shared_ptr<Schedule>& S, const pseudoJob& nextElement) const;
+    double artificialFlowTime(const shared_ptr<Schedule>& S, const pseudoJob& nextElement, const vector<t_job>& U) const;
+    double getIndexFunction(const shared_ptr<Schedule>& S, const t_job& iJob, const vector<t_job>& U) const;
+    shared_ptr<Schedule> localLR(const vector<t_job>& remainedJobs, const t_job& jobTaken, const t_job& uJobs);
+    double weightFunction(const t_job& iJob, const t_machine& iMachine) const;
+    shared_ptr<Schedule> getLR(const t_job& x); // General x LR's
 };
 
 //class arbitraryPermutation : public cHeuristic{

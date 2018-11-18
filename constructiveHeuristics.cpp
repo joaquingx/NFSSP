@@ -158,29 +158,29 @@ void NEH::NEHOuterLoop(const vNEH& orderedJobs) {
         resultSchedule->addPseudoJob(0,nMachines,jobNumber,posInsert);
     }
 }
-struct cLR {
-    Schedule * S;
-    int nJobs,nMachines;
-    vector<int> U;
-    LR * caller;
-    cLR (int nMachines, int nJobs, vector<int> U, const Matrix & instance) {
-        this->nJobs = nJobs;
-        this->nMachines = nMachines;
-        this->U = std::move(U);
-        this->S = new Schedule(nMachines,nJobs,instance);
-        this->caller = new LR(nMachines,nJobs,instance);
-    }
-    bool operator () (int iJob, int kJob) {
-        double fnci = caller->getIndexFunction((*S),iJob,U);
-        double fnck = caller->getIndexFunction((*S),kJob,U);
-        if(fnci == fnci){ // break ties by IT's
-            double ITi = caller->wTotalMachineiTime((*S),pseudoJob(0,nMachines,iJob));
-            double ITk = caller->wTotalMachineiTime((*S),pseudoJob(0,nMachines,kJob));
-            return ITi < ITk;
-        }
-        return fnci < fnck;
-    }
-};
+//struct cLR {
+//    Schedule * S;
+//    int nJobs,nMachines;
+//    vector<int> U;
+//    LR * caller;
+//    cLR (int nMachines, int nJobs, vector<int> U, const Matrix & instance) {
+//        this->nJobs = nJobs;
+//        this->nMachines = nMachines;
+//        this->U = std::move(U);
+//        this->S = new Schedule(nMachines,nJobs,instance);
+//        this->caller = new LR(nMachines,nJobs,instance);
+//    }
+//    bool operator () (int iJob, int kJob) {
+//        double fnci = caller->getIndexFunction((*S),iJob,U);
+//        double fnck = caller->getIndexFunction((*S),kJob,U);
+//        if(fnci == fnci){ // break ties by IT's
+//            double ITi = caller->wTotalMachineiTime((*S),pseudoJob(0,nMachines,iJob));
+//            double ITk = caller->wTotalMachineiTime((*S),pseudoJob(0,nMachines,kJob));
+//            return ITi < ITk;
+//        }
+//        return fnci < fnck;
+//    }
+//};
 
 shared_ptr<Schedule> LR::getLR(const t_job& x) {
     vector<t_job> initialList(nJobs);
@@ -199,35 +199,29 @@ shared_ptr<Schedule> LR::getLR(const t_job& x) {
 //    }
 //    cout << "\n";
     double minFlowTime = 100000000;
-    Schedule *finalSchedule = new Schedule();
     for (int i = 0; i < x; ++i) {
-        vector<int> cpyInitialList = initialList;
-        Schedule *NSchedule = new Schedule(nMachines, nJobs, instance);
         int jobTaken = initialList[i];
-        NSchedule->addPseudoJob(0, nMachines, jobTaken);
-        cpyInitialList.erase(find(cpyInitialList.begin(), cpyInitialList.end(), jobTaken));
-        //TODO: Change objects to pointers
-        NSchedule = localLR((*NSchedule), cpyInitialList, 0);
-//        double thisTotalTime = NSchedule->getTotalFlowTime();
-//        if (thisTotalTime < minFlowTime) {
-//            minFlowTime = thisTotalTime;
-//            (*finalSchedule) = *NSchedule;
-//        }
+        shared_ptr<Schedule> NSchedule = localLR(initialList,jobTaken,0);
+        double thisTotalTime = NSchedule->getTotalFlowTime();
+        if (thisTotalTime < minFlowTime) {
+            minFlowTime = thisTotalTime;
+            resultSchedule = NSchedule;
+        }
     }
-    return finalSchedule;
+    return resultSchedule;
 }
 
 // checkea3
-double LR::wTotalMachineiTime(Schedule &S, pseudoJob  nextElement) {
+double LR::wTotalMachineiTime(const shared_ptr<Schedule>& S, const pseudoJob& nextElement) const{
     double IT = 0;
     //it's a fact.
     //init of flowtimes.
     // getPermutationflow is the problem?
-    double kFlow = S.getPermutationFlowTime(0,S.getSize()-1);// can cause troubles? check
+    double kFlow = S->getPermutationFlowTime(0,S->getSize()-1);// can cause troubles? check
     double lastNewFlowTime = kFlow + instance(0,nextElement.job);
     for(int iMachine = 1 ; iMachine < nMachines; ++iMachine){
-        double weight = weightFunction(S.getSize()-1, iMachine);
-        kFlow = S.getPermutationFlowTime(iMachine,S.getSize()-1);// can cause troubles? check
+        double weight = weightFunction(S->getSize()-1, iMachine);
+        kFlow = S->getPermutationFlowTime(iMachine,S->getSize()-1);// can cause troubles? check
         IT += weight * fmax(lastNewFlowTime - kFlow,0);
         // iJob is job to insert
         // Where to insert job, max of :
@@ -239,10 +233,10 @@ double LR::wTotalMachineiTime(Schedule &S, pseudoJob  nextElement) {
     return IT;
 }
 
-double LR::weightFunction(int iJob, int iMachine) {
-    ++iJob;++iMachine; // To avoid div by 0
+double LR::weightFunction(const t_job& iJob, const t_machine& iMachine) const{
+//    ++iJob;++iMachine; // To avoid div by 0
     double dividend = nMachines;
-    double divisor  = iMachine + iJob * (nMachines - iMachine)/(nJobs - 2); // precision error?
+    double divisor  = iMachine + (iJob+1) * (nMachines - (iMachine+1))/(nJobs - 2); // precision error?
     return dividend/divisor;
 }
 
@@ -252,43 +246,51 @@ double getDivisor(double n){
     return n;
 }
 
-double LR::artificialFlowTime(Schedule &S, pseudoJob nextElement,  vector<int> & U) {
+double LR::artificialFlowTime(const shared_ptr<Schedule>& S, const pseudoJob& nextElement, const vector<t_job>& U) const{
     // "Creating" artificial Job
-    assert(S.getSize() + U.size() == nJobs); // Correct number of elements
+    cout << S->getSize() << "\n";
+    cout << U.size() << "\n";
+    assert(S->getSize() + U.size() == nJobs); // Correct number of elements
     double timeJob = 0;
     vector<double> nTimes;
-    int siz = S.getSize();
+    int siz = S->getSize();
     for(int iMachine = 0 ; iMachine < nMachines ; ++iMachine) {
         timeJob = 0;
         for (auto iJob : U) {
             timeJob += instance(iMachine,iJob);
         }
-        nTimes.push_back(timeJob/(nJobs - S.getSize() - 1)); // div by zero?
+        nTimes.push_back(timeJob/(nJobs - S->getSize() - 1)); // div by zero?
     }
 
     // Calculating C_{m,p}
-    Schedule NS = S;
-    NS.addPseudoJob(nextElement);
-    double lastFlowTime = NS.getPermutationFlowTime(0,NS.getSize()-1) + nTimes[0];
-    for(int iMachine = 1; iMachine < nMachines; ++iMachine){
-        double kFlowtime = NS.getPermutationFlowTime(iMachine, NS.getSize()-1); //check
+    shared_ptr<Schedule> NS = make_shared<Schedule>(Schedule(this->resultSchedule->pInstance));
+    NS->addPseudoJob(nextElement);
+    double lastFlowTime = NS->getPermutationFlowTime(0,NS->getSize()-1) + nTimes[0];
+    for(t_machine iMachine = 1; iMachine < nMachines; ++iMachine){
+        double kFlowtime = NS->getPermutationFlowTime(iMachine, NS->getSize()-1); //check
         lastFlowTime = max(lastFlowTime,kFlowtime) + nTimes[iMachine];
     }
-    double kTotalTime = NS.getTotalFlowTime(); // C_{m,i}
+    double kTotalTime = NS->getTotalFlowTime(); // C_{m,i}
     return kTotalTime + lastFlowTime;
 }
 
-double LR::getIndexFunction(Schedule& S, int iJob, vector<int> &U) {
+double LR::getIndexFunction(const shared_ptr<Schedule>& S, const t_job& iJob, const vector<t_job>& U) const {
     double IT,AT,fnc;
 //    cout << "\n";
     IT = wTotalMachineiTime(S, pseudoJob(0, nMachines, iJob));
     // Actual schedule + actual job is creating in artificial flowtime process
     AT = artificialFlowTime(S, pseudoJob(0, nMachines, iJob), U);
-    fnc = (nJobs - S.getSize() - 2) * IT + AT;
+    fnc = (nJobs - S->getSize() - 2) * IT + AT;
     return fnc;
 }
 
-Schedule * LR::localLR(Schedule&  S, vector<int>& U, int uJobs) {
+shared_ptr<Schedule> LR::localLR(const vector<t_job>& remainedJobs, const t_job& jobTaken, const t_job& uJobs) {
+
+    shared_ptr<Schedule> S = make_shared<Schedule>(this->resultSchedule->pInstance);
+    S->addPseudoJob(0, nMachines, jobTaken);
+    vector<t_job> U = remainedJobs;
+    U.erase(find(U.begin(), U.end(), jobTaken));
+
     double mFnc,fnc;
     int indexJob;
     while(U.size() > uJobs) {
@@ -307,9 +309,9 @@ Schedule * LR::localLR(Schedule&  S, vector<int>& U, int uJobs) {
             indexJob = U[0];
         }
         U.erase( find(U.begin(),U.end(),indexJob) );//error?
-        S.addPseudoJob(0,nMachines,indexJob);
+        S->addPseudoJob(0,nMachines,indexJob);
     }
-    return (&S);
+    return S;
 }
 
 //LR::LR() = default;

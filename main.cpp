@@ -27,7 +27,9 @@ int main() {
 //        }
 //    }
     NEH r(pibe);
+//    LR r(pibe);
 //    randomPermutation r(pibe);
+//    shared_ptr<Schedule> p = r.getLR(1);
     shared_ptr<Schedule> p = r.getNEH();
     p->printGantt();
     cout << p->getTotalFlowTime() <<  "\n";
