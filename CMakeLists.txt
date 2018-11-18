@@ -4,3 +4,4 @@ project(NFSSP)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(NFSSP main.cpp schedule.cpp schedule.h constructiveHeuristics.cpp constructiveHeuristics.h Matrix.cpp Matrix.h globalConstants.cpp globalConstants.h)
+#add_executable(NFSSP main.cpp schedule.cpp schedule.h Matrix.cpp Matrix.h globalConstants.cpp globalConstants.h)

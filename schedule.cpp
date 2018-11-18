@@ -5,41 +5,45 @@
 #include <iostream>
 #include "schedule.h"
 
-Schedule::Schedule(int nMachines, int nJobs, const Matrix & instance) {
-    this->nMachines = nMachines;
-    this->nJobs = nJobs;
-    this->instance = instance;
+Schedule::Schedule(const shared_ptr<ProblemInstance>& pInstance) {
+    this->pInstance = pInstance;
 }
 
-bool Schedule::addPseudoJob(int begin, int end, int job) {
+void Schedule::addPseudoJob(const t_machine& begin, const t_machine& end, const t_job& job) {
     pseudoJob actJob(begin,end,job);
-    auto error = schedule.emplace_back(actJob);
-    return true;
-}
-bool Schedule::addPseudoJob(pseudoJob nJob) {
-    auto error = schedule.emplace_back(nJob);
-    return true;
-
+    schedule.emplace_back(actJob);
 }
 
+void Schedule::addPseudoJob(const pseudoJob& nJob){
+    schedule.emplace_back(nJob);
+}
+
+void Schedule::addPseudoJob(const t_machine& begin,const t_machine& end,const t_job& job,const t_size_type&  index) {
+    auto actInsertion = schedule.begin() + index;
+    pseudoJob actJob(begin,end,job);
+    if(schedule.empty())
+        schedule.emplace_back(actJob);
+    else
+        schedule.insert(actInsertion, actJob);
+}
 
 // Could be a error due how upperLastJob is obtained
-int Schedule::getLastTime(vector<machineInfo> &machineState, int actMachine) {
-    int myLastJob = machineState[actMachine].lastTimeJob;
+t_flow_time Schedule::getLastTime(const vector<machineInfo>& machineState, const t_machine& actMachine) const {
+    auto myLastJob = machineState[actMachine].lastTimeJob;
     if(actMachine == 0)
         return myLastJob;
-    int upperLastJob = machineState[actMachine-1].lastTimeJob;
+    auto upperLastJob = machineState[actMachine-1].lastTimeJob;
     return max(myLastJob, upperLastJob);
 }
 //maybe can be improved with taillard?
 // iJob: actual index pseudo job
 // iMachine: actual index Machine
-int Schedule::getTotalFlowTime() {
-    vector<machineInfo> tCompletion(nMachines);
-    int rTotalFlowTime = 0;
+t_flow_time Schedule::getTotalFlowTime() const {
+    vector<machineInfo> tCompletion(pInstance->nMachines);
+    t_flow_time rTotalFlowTime = 0;
     for (auto apJob : schedule) {
-        for (int iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
-            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion,iMachine) + instance(iMachine,apJob.job);
+        for (t_machine iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
+            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion,iMachine) + pInstance->instance(iMachine,apJob.job);
             tCompletion[iMachine].actTotalFlow += tCompletion[iMachine].lastTimeJob;
             rTotalFlowTime = max(rTotalFlowTime,tCompletion[iMachine].actTotalFlow);
         }
@@ -47,24 +51,24 @@ int Schedule::getTotalFlowTime() {
     return rTotalFlowTime;
 }
 
-void Schedule::printGantt() {
-    vector< vector< char > > chart(nMachines);
-    vector<machineInfo> tCompletion(nMachines);
-    int rTotalFlowTime = 0;
+void Schedule::printGantt() const {
+    vector< vector< char > > chart(pInstance->nMachines);
+    vector<machineInfo> tCompletion(pInstance->nMachines);
+    t_flow_time rTotalFlowTime = 0;
     for (auto apJob : schedule) {
-        for (int iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
+        for (t_machine iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
             int lastTime = getLastTime(tCompletion,iMachine);
 //            cout << "Machine" << iMachine << "on Job" << apJob.job << ": " << lastTime << "\n";
             if(iMachine > 0) {
-                for (int iDraw = 0; iDraw < lastTime-tCompletion[iMachine].lastTimeJob; iDraw++)
+                for (t_flow_time iDraw = 0; iDraw < lastTime-tCompletion[iMachine].lastTimeJob; iDraw++)
                     chart[iMachine].emplace_back('-');
             }
-            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion,iMachine) + instance(iMachine,apJob.job);
+            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion,iMachine) + pInstance->instance(iMachine,apJob.job);
             tCompletion[iMachine].actTotalFlow += tCompletion[iMachine].lastTimeJob;
             rTotalFlowTime = max(rTotalFlowTime,tCompletion[iMachine].actTotalFlow);
 
             //draw
-            for(int  iDraw = 0 ;  iDraw < instance(iMachine,apJob.job); iDraw++) {
+            for(t_flow_time iDraw = 0 ;  iDraw < pInstance->instance(iMachine,apJob.job); iDraw++) {
                 chart[iMachine].emplace_back(char(apJob.job + '0'));
             }
         }
@@ -102,7 +106,7 @@ void Schedule::printGantt() {
     cout << "Total Flowtime: " << rTotalFlowTime << "\n";
 }
 
-void Schedule::printPermutationSchedule() {
+void Schedule::printPermutationSchedule() const {
     cout << "\nPermutation Schedule\n\n";
     for (auto &i : schedule) {
         cout << i.job << " ";
@@ -110,24 +114,24 @@ void Schedule::printPermutationSchedule() {
     cout << "\n";
 }
 
-int Schedule::getSize() {
-    return int(schedule.size());
+t_size_type Schedule::getSize() const {
+    return schedule.size();
 }
 
-pseudoJob Schedule::getPseudoJob(int x) {
+pseudoJob Schedule::getPseudoJob(const t_size_type & x) {
     return schedule[x];
 }
 
 //Assuming good input always, works  only w permutation fssp
-int Schedule::getPermutationFlowTime(int indexMachine, int indexJob) {
+t_flow_time Schedule::getPermutationFlowTime(const t_machine& indexMachine, const t_job& indexJob) const{
     if(indexJob < 0){
         return 0;
     }
-    vector<machineInfo> tCompletion(nMachines);
+    vector<machineInfo> tCompletion(pInstance->nMachines);
     int iJob=0;
     for (auto apJob : schedule) {
-        for (int iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
-            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion, iMachine) + instance(iMachine,apJob.job);
+        for (t_machine iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
+            tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion, iMachine) + pInstance->instance(iMachine,apJob.job);
             tCompletion[iMachine].actTotalFlow += tCompletion[iMachine].lastTimeJob;
             if(iJob == indexJob and iMachine == indexMachine){
                 return tCompletion[iMachine].lastTimeJob;
@@ -135,31 +139,27 @@ int Schedule::getPermutationFlowTime(int indexMachine, int indexJob) {
         }
         ++iJob;
     }
-
+    return -1;
 }
 
-bool Schedule::addPseudoJob(int begin, int end, int job,int  index) {
-    auto actInsertion = schedule.begin() + index;
-    pseudoJob actJob(begin,end,job);
-    if(schedule.empty())
-        schedule.emplace_back(actJob);
-    else
-        auto error = schedule.insert(actInsertion, actJob);
-    return true;
-}
-
-bool Schedule::removePseudoJob(int index) {
+void Schedule::removePseudoJob(const t_size_type& index) {
     auto actRemove = schedule.begin() + index;
     schedule.erase(actRemove);
-    return true;
 }
 
-Schedule::Schedule() = default;
+Schedule::Schedule(){}
 
 
-
-
-
+istream& operator>> (istream& is, shared_ptr<ProblemInstance>& pInstance){
+    is >> pInstance->nJobs >> pInstance->nMachines;
+    pInstance->instance = Matrix(pInstance->nMachines, pInstance->nJobs);
+    for(t_machine i = 0; i < pInstance->nMachines; ++i){
+        for(t_job j = 0; j < pInstance->nJobs; ++j){
+            is >> pInstance->instance(i,j);
+        }
+    }
+    return is;
+}
 
 
 
