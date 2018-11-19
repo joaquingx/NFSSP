@@ -26,11 +26,12 @@ int main() {
 //            cin >> pibe->instance(i,j);
 //        }
 //    }
-    NEH r(pibe);
-//    LR r(pibe);
+//    NEH r(pibe);
+    LR r(pibe);
 //    randomPermutation r(pibe);
-//    shared_ptr<Schedule> p = r.getLR(1);
-    shared_ptr<Schedule> p = r.getNEH();
+    shared_ptr<Schedule> p = r.getLR(1);
+//    shared_ptr<Schedule> p = r.getNEH();
+    p->printPermutationSchedule();
     p->printGantt();
     cout << p->getTotalFlowTime() <<  "\n";
 //    cout << "pero que recarajeanos\n";

@@ -3,7 +3,9 @@
 //
 
 #include <iostream>
+#include <X11/Xlib.h>
 #include "schedule.h"
+#include "assert.h"
 
 Schedule::Schedule(const shared_ptr<ProblemInstance>& pInstance) {
     this->pInstance = pInstance;
@@ -128,7 +130,7 @@ t_flow_time Schedule::getPermutationFlowTime(const t_machine& indexMachine, cons
         return 0;
     }
     vector<machineInfo> tCompletion(pInstance->nMachines);
-    int iJob=0;
+    t_job iJob=0;
     for (auto apJob : schedule) {
         for (t_machine iMachine = apJob.begin; iMachine < apJob.end; ++iMachine) {
             tCompletion[iMachine].lastTimeJob = getLastTime(tCompletion, iMachine) + pInstance->instance(iMachine,apJob.job);
@@ -139,6 +141,7 @@ t_flow_time Schedule::getPermutationFlowTime(const t_machine& indexMachine, cons
         }
         ++iJob;
     }
+    assert(true); // Code couldn't reach this
     return -1;
 }
 

@@ -115,13 +115,13 @@ shared_ptr<Schedule> NEH::getNEH(Schedule & S, vector<t_job> & U) {
 shared_ptr<Schedule> NEH::getNEH() {
     vector< pair< double, t_flow_time > > orderedJobs;
     vector< double > totalProcessingTimes(nJobs);
-    for(int iMachine = 0 ; iMachine < nMachines ; ++iMachine){
-        for(int iJob = 0; iJob < nJobs ; ++iJob){
+    for(t_machine iMachine = 0 ; iMachine < nMachines ; ++iMachine){
+        for(t_job iJob = 0; iJob < nJobs ; ++iJob){
             totalProcessingTimes[iJob] += instance(iMachine,iJob);
         }
     }
 
-    for(int iJob = 0 ; iJob < nJobs ; ++iJob){
+    for(t_job iJob = 0 ; iJob < nJobs ; ++iJob){
         orderedJobs.emplace_back(totalProcessingTimes[iJob],iJob);
     }
     sort(orderedJobs.begin(), orderedJobs.end());
@@ -190,15 +190,32 @@ shared_ptr<Schedule> LR::getLR(const t_job& x) {
         return i++;
     });
 
-    // Ordenando segun index function
-//    sort(initialList.begin(), initialList.end(), cLR(nMachines,nJobs,initialList,instance));
+    // Lamba function to sort by index function
+    auto comp = [&](const int& iJob,const int& kJob)-> bool {
+        double fnci = this->getIndexFunction(resultSchedule, iJob, initialList);
+        double fnck = this->getIndexFunction(resultSchedule, kJob, initialList);
+        if(fnci == fnck){
+            double ITi = this->wTotalMachineiTime(resultSchedule, pseudoJob(0,nMachines,iJob));
+            double ITk = this->wTotalMachineiTime(resultSchedule, pseudoJob(0,nMachines,kJob));
+            return ITi < ITk;
+        }
+        return fnci < fnck;
+    };
 
-//    cout << "Ordered List:\n";
-//    for(auto u : initialList){
-//        cout << u << " ";
-//    }
-//    cout << "\n";
+    // Ordenando segun index function
+    sort(initialList.begin(), initialList.end(), comp);
+
+    cout << "Ordered List:\n";
+    for(auto u : initialList){
+        cout << u << " ";
+    }
+    cout << "\n";
     double minFlowTime = 100000000;
+
+    //code to try:
+//    initialList[0] = 8;
+
+
     for (int i = 0; i < x; ++i) {
         int jobTaken = initialList[i];
         shared_ptr<Schedule> NSchedule = localLR(initialList,jobTaken,0);
@@ -219,7 +236,7 @@ double LR::wTotalMachineiTime(const shared_ptr<Schedule>& S, const pseudoJob& ne
     // getPermutationflow is the problem?
     double kFlow = S->getPermutationFlowTime(0,S->getSize()-1);// can cause troubles? check
     double lastNewFlowTime = kFlow + instance(0,nextElement.job);
-    for(int iMachine = 1 ; iMachine < nMachines; ++iMachine){
+    for(t_machine iMachine = 1 ; iMachine < nMachines; ++iMachine){
         double weight = weightFunction(S->getSize()-1, iMachine);
         kFlow = S->getPermutationFlowTime(iMachine,S->getSize()-1);// can cause troubles? check
         IT += weight * fmax(lastNewFlowTime - kFlow,0);
@@ -236,7 +253,7 @@ double LR::wTotalMachineiTime(const shared_ptr<Schedule>& S, const pseudoJob& ne
 double LR::weightFunction(const t_job& iJob, const t_machine& iMachine) const{
 //    ++iJob;++iMachine; // To avoid div by 0
     double dividend = nMachines;
-    double divisor  = iMachine + (iJob+1) * (nMachines - (iMachine+1))/(nJobs - 2); // precision error?
+    double divisor  = (iMachine+1) + (iJob+1) * (nMachines - (iMachine+1))/(nJobs - 2); // precision error?
     return dividend/divisor;
 }
 
@@ -248,8 +265,8 @@ double getDivisor(double n){
 
 double LR::artificialFlowTime(const shared_ptr<Schedule>& S, const pseudoJob& nextElement, const vector<t_job>& U) const{
     // "Creating" artificial Job
-    cout << S->getSize() << "\n";
-    cout << U.size() << "\n";
+//    cout << S->getSize() << "\n";
+//    cout << U.size() << "\n";
     assert(S->getSize() + U.size() == nJobs); // Correct number of elements
     double timeJob = 0;
     vector<double> nTimes;
@@ -263,8 +280,12 @@ double LR::artificialFlowTime(const shared_ptr<Schedule>& S, const pseudoJob& ne
     }
 
     // Calculating C_{m,p}
-    shared_ptr<Schedule> NS = make_shared<Schedule>(Schedule(this->resultSchedule->pInstance));
+    shared_ptr<Schedule> NS = make_shared<Schedule>(*(S));
     NS->addPseudoJob(nextElement);
+
+    //code to try
+    double jFlow = NS->getPermutationFlowTime(0,NS->getSize()-1);
+
     double lastFlowTime = NS->getPermutationFlowTime(0,NS->getSize()-1) + nTimes[0];
     for(t_machine iMachine = 1; iMachine < nMachines; ++iMachine){
         double kFlowtime = NS->getPermutationFlowTime(iMachine, NS->getSize()-1); //check
