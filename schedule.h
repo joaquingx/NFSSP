@@ -39,8 +39,8 @@ struct machineInfo{
 };
 
 struct ProblemInstance{
-    t_machine nMachines;
-    t_job nJobs;
+    t_machine nMachines{};
+    t_job nJobs{};
     Matrix instance;
 
     ProblemInstance(const t_machine& nMachines, const t_job& nJobs, const Matrix& instance){
@@ -49,13 +49,12 @@ struct ProblemInstance{
         this->instance = instance;
     }
 
-    ProblemInstance(){};
+    ProblemInstance() = default;
     friend istream& operator>> (istream& is, shared_ptr<ProblemInstance>& pInstance);
 };
 
 
 class Schedule {
-
     vector<pseudoJob> schedule; // maybe I can use a better data structure
     t_flow_time getLastTime(const vector< machineInfo > & machineState, const t_machine& actMachine) const;
 public:
@@ -68,6 +67,7 @@ public:
     void addPseudoJob(const pseudoJob& nJob);
     void addPseudoJob(const t_machine& begin, const t_machine& end, const t_job& job, const t_size_type& index);
     void removePseudoJob(const t_size_type& index);
+    void cleanSchedule();
 
 
     t_flow_time getPermutationFlowTime(const t_machine& indexMachine, const t_job& indexJob) const;

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <X11/Xlib.h>
 #include "schedule.h"
-#include "assert.h"
+#include "cassert"
 
 Schedule::Schedule(const shared_ptr<ProblemInstance>& pInstance) {
     this->pInstance = pInstance;
@@ -141,7 +141,7 @@ t_flow_time Schedule::getPermutationFlowTime(const t_machine& indexMachine, cons
         }
         ++iJob;
     }
-    assert(true); // Code couldn't reach this
+    static_assert(true); // Code couldn't reach this
     return -1;
 }
 
@@ -150,7 +150,11 @@ void Schedule::removePseudoJob(const t_size_type& index) {
     schedule.erase(actRemove);
 }
 
-Schedule::Schedule(){}
+Schedule::Schedule() = default;
+
+void Schedule::cleanSchedule() {
+    schedule.clear();
+}
 
 
 istream& operator>> (istream& is, shared_ptr<ProblemInstance>& pInstance){

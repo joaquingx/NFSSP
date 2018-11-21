@@ -6,18 +6,22 @@
 #define NFSSP_CONSTRUCTIVEHEURISTICS_H
 #include "schedule.h"
 #include "Matrix.h"
-#define INF 2000000000
 
+
+constexpr t_flow_time INF = 2000000000;
 using vNEH = vector< pair< double, t_flow_time > >;
+using shared_ptr_pair_vector = shared_ptr< pair< vector<t_job>,shared_ptr<Schedule> > >;
+using pair_vector = pair< vector<t_job>,shared_ptr<Schedule> >;
 
 class cHeuristic{
 protected:
-    shared_ptr<Schedule> resultSchedule;
     const Matrix& instance; // reference to matrix to avoid indirections
     const t_job& nJobs; //necessary?
     const t_machine& nMachines;
 public:
+    shared_ptr<Schedule> resultSchedule;
     explicit cHeuristic(const shared_ptr<ProblemInstance>& pInstance);
+    void cleanSchedule() const;
 };
 
 class randomPermutation : public cHeuristic{
@@ -33,7 +37,7 @@ private:
     t_job NEHInnerLoop(const t_job& jobNumber);
 public:
     shared_ptr<Schedule> getNEH();
-    shared_ptr<Schedule> getNEH(Schedule & S, vector<t_job> & U);
+    shared_ptr<Schedule> getNEH(const shared_ptr<Schedule>& S, const vector<t_job>& U);
 };
 
 
@@ -45,26 +49,16 @@ public:
     double wTotalMachineiTime(const shared_ptr<Schedule>& S, const pseudoJob& nextElement) const;
     double artificialFlowTime(const shared_ptr<Schedule>& S, const pseudoJob& nextElement, const vector<t_job>& U) const;
     double getIndexFunction(const shared_ptr<Schedule>& S, const t_job& iJob, const vector<t_job>& U) const;
-    shared_ptr<Schedule> localLR(const vector<t_job>& remainedJobs, const t_job& jobTaken, const t_job& uJobs);
+    shared_ptr_pair_vector localLR(const vector<t_job>& remainedJobs, const t_job& jobTaken, const t_job& uJobs);
     double weightFunction(const t_job& iJob, const t_machine& iMachine) const;
     shared_ptr<Schedule> getLR(const t_job& x); // General x LR's
 };
 
-//class arbitraryPermutation : public cHeuristic{
-//    using cHeuristic::cHeuristic;
-//public:
-//    Schedule getArbitraryPermutation();
-//};
-
-
-
-//
-//
-//class LRandNEH: public cHeuristic{
-//    using cHeuristic::cHeuristic;
-//public:
-//    Schedule getLRandNEH(int x);
-//};
+class LRandNEH: public cHeuristic{
+    using cHeuristic::cHeuristic;
+public:
+    shared_ptr<Schedule> getLRandNEH(const t_job& x);
+};
 
 
 //class FF{
