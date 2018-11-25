@@ -6,6 +6,7 @@
 #include <X11/Xlib.h>
 #include "schedule.h"
 #include "cassert"
+#include <algorithm>
 
 Schedule::Schedule(const shared_ptr<ProblemInstance>& pInstance) {
     this->pInstance = pInstance;
@@ -145,15 +146,33 @@ t_flow_time Schedule::getPermutationFlowTime(const t_machine& indexMachine, cons
     return -1;
 }
 
-void Schedule::removePseudoJob(const t_size_type& index) {
-    auto actRemove = schedule.begin() + index;
-    schedule.erase(actRemove);
+void Schedule::removePseudoJob(const t_job& actJob ) {
+    pseudoJob pseudo(0,pInstance->nMachines,actJob);
+    auto iJob = find(schedule.begin(), schedule.end(), pseudo);
+    schedule.erase(iJob);
 }
 
 Schedule::Schedule() = default;
 
 void Schedule::cleanSchedule() {
     schedule.clear();
+}
+
+void Schedule::shiftPseudoJob(const t_job &firstJob, const t_job &secondJob) {
+    pseudoJob firstPermJob(0,pInstance->nMachines,firstJob);
+    pseudoJob secondPermJob(0,pInstance->nMachines,secondJob);
+    auto iFirstJob = find(schedule.begin(), schedule.end(), firstPermJob);
+    auto iSecondJob = find(schedule.begin(), schedule.end(), secondPermJob);
+    cout << "Antes:\n";
+    printPermutationSchedule();
+    iter_swap(iFirstJob,iSecondJob);
+    cout << "Despues:\n";
+    printPermutationSchedule();
+}
+
+void Schedule::removePseudoJobIndex(const t_size_type &index) {
+    auto actRemove = schedule.begin() + index;
+    schedule.erase(actRemove);
 }
 
 
@@ -169,6 +188,6 @@ istream& operator>> (istream& is, shared_ptr<ProblemInstance>& pInstance){
 }
 
 
-
-
-
+bool operator==(const pseudoJob & A, const pseudoJob & B) {
+    return A.job == B.job;
+}

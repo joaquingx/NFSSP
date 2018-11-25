@@ -24,6 +24,7 @@ struct pseudoJob{
         this->end = end;
         this->job = job;
     }
+    friend bool operator==(const pseudoJob&, const pseudoJob&);
 };
 
 struct machineInfo{
@@ -66,7 +67,9 @@ public:
     void addPseudoJob(const t_machine& begin, const t_machine& end, const t_job& job);
     void addPseudoJob(const pseudoJob& nJob);
     void addPseudoJob(const t_machine& begin, const t_machine& end, const t_job& job, const t_size_type& index);
-    void removePseudoJob(const t_size_type& index);
+    void shiftPseudoJob(const t_job& firstJob, const t_job& secondJob);
+    void removePseudoJobIndex(const t_size_type& index);
+    void removePseudoJob(const t_job& actJob);
     void cleanSchedule();
 
 
@@ -82,6 +85,5 @@ public:
 
     //    vector<pseudoJob>::iterator getBegin();
 };
-
 
 #endif //NFSSP_SCHEDULE_H

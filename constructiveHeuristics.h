@@ -67,7 +67,7 @@ public:
 //    Matrixinstance;
 //    double weightFunction(int iJob, int iMachine);
 //public:
-//    FF(int nMachines, int nJobs, vector<vector < int> > & instance);
+//    FF(int  nMachines, int nJobs, vector<vector < int> > & instance);
 //    double wTotalMachineiTime(Schedule &S, pseudoJob nextElement);
 //    double artificialFlowTime(Schedule &S, pseudoJob nextElement, vector<int> & U);
 //    double getIndexFunction(Schedule &S, int iJob, vector<int> &U);

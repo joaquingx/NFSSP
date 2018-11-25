@@ -6,6 +6,7 @@
 #include <memory>
 #include "Matrix.h"
 #include "globalConstants.h"
+#include "metaheuristic.h"
 
 #define MAXINSTANCE 500
 #define NANOSECOND 1000000000
@@ -15,9 +16,9 @@ typedef vector< vector< uint > > iType;
 //constexpr int maxLength = 1000000;
 
 //instance: nMachines Rows, nJobs Colums
-// TODO: change matrix traverse order.
 int main() {
 //    t_time a;
+
     shared_ptr<ProblemInstance> pibe(new ProblemInstance());
     cin >> pibe;
 
@@ -27,15 +28,26 @@ int main() {
 //        }
 //    }
 //    NEH r(pibe);
+
+
+//    ILS ils(pibe,5,5);
+//    shared_ptr<Schedule> rSchedule = ils.getMetaheuristic();
+//    cout << "Total Flowtime:" << rSchedule->getTotalFlowTime() << "\n";
     LR r(pibe);
 //    LRandNEH r(pibe);
 //    randomPermutation r(pibe);
-    shared_ptr<Schedule> p = r.getLR(1);
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+//    shared_ptr<Schedule> p = r.getLR(1);
+//    r.getLRandNEH(5)->printPermutationSchedule();
+    cout << "Total Flowtime = " <<  r.getLR(5)->getTotalFlowTime() << "\n";
+    std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
+    cout << "Time difference = " << std::fixed << setprecision(10) << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() <<" nanoseconds\n";
 //    shared_ptr<Schedule> p = r.getNEH();
 //    shared_ptr<Schedule> p = r.getLRandNEH(1);
-    p->printPermutationSchedule();
-    p->printGantt();
-    cout << p->getTotalFlowTime() <<  "\n";
+//    p->printPermutationSchedule();
+//    p->printGantt();
+//    cout << p->getTotalFlowTime() <<  "\n";
+
 //    cout << "pero que recarajeanos\n";
 
     return 0;
