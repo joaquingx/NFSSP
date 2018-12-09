@@ -163,11 +163,11 @@ void Schedule::shiftPseudoJob(const t_job &firstJob, const t_job &secondJob) {
     pseudoJob secondPermJob(0,pInstance->nMachines,secondJob);
     auto iFirstJob = find(schedule.begin(), schedule.end(), firstPermJob);
     auto iSecondJob = find(schedule.begin(), schedule.end(), secondPermJob);
-    cout << "Antes:\n";
-    printPermutationSchedule();
+//    cout << "Antes:\n";
+//    printPermutationSchedule();
     iter_swap(iFirstJob,iSecondJob);
-    cout << "Despues:\n";
-    printPermutationSchedule();
+//    cout << "Despues:\n";
+//    printPermutationSchedule();
 }
 
 void Schedule::removePseudoJobIndex(const t_size_type &index) {

@@ -18,6 +18,7 @@ cHeuristic::cHeuristic(const shared_ptr<ProblemInstance> &pInstance): resultSche
                                                                       nJobs(pInstance->nJobs){}
 
 
+
 shared_ptr<Schedule> randomPermutation::getRandomPermutation() {
     vector<t_job> toShuffle(resultSchedule->pInstance->nJobs);
     //generates 1 to nJobs permutation;
@@ -70,14 +71,14 @@ shared_ptr<Schedule> NEH::getNEH() {
 
 t_job NEH::NEHInnerLoop(const t_job& jobNumber) {
     t_flow_time iWinner = 0, tftWinner = INF;
-    for(t_job iJobs = 0 ; iJobs < resultSchedule->getSize() ; ++iJobs){
+    for(t_size_type iJobs = 0 ; iJobs < resultSchedule->getSize() ; ++iJobs){
         resultSchedule->addPseudoJob(0,nMachines,jobNumber,iJobs);
         t_flow_time actualTFT = resultSchedule->getTotalFlowTime();
         if(actualTFT < tftWinner){
             iWinner = iJobs;
             tftWinner = actualTFT;
         }
-        resultSchedule->removePseudoJob(iJobs);
+        resultSchedule->removePseudoJobIndex(iJobs);
     }
     return iWinner;
 }
@@ -90,6 +91,10 @@ void NEH::NEHOuterLoop(const vNEH& orderedJobs) {
         t_job posInsert = NEHInnerLoop(jobNumber);
         resultSchedule->addPseudoJob(0,nMachines,jobNumber,posInsert);
     }
+}
+
+shared_ptr<Schedule> NEH::getConstructive() {
+    return getNEH();
 }
 
 shared_ptr<Schedule> LR::getLR(const t_job& x) {
@@ -114,11 +119,11 @@ shared_ptr<Schedule> LR::getLR(const t_job& x) {
 
     sort(initialList.begin(), initialList.end(), comp);
 
-    cout << "Ordered List:\n";
-    for(auto u : initialList){
-        cout << u << " ";
-    }
-    cout << "\n";
+//    cout << "Ordered List:\n";
+//    for(auto u : initialList){
+//        cout << u << " ";
+//    }
+//    cout << "\n";
     double minFlowTime = 100000000;
 
 
@@ -228,6 +233,11 @@ shared_ptr_pair_vector LR::localLR(const vector<t_job>& remainedJobs, const t_jo
     return make_shared< pair_vector >(make_pair(U,S));
 }
 
+shared_ptr<Schedule> LR::getConstructive() {
+    t_job x; cin >> x;
+    return getLR(x);
+}
+
 shared_ptr<Schedule> LRandNEH::getLRandNEH(const t_job& x) {
     vector<t_job> initialList(nJobs);
     //generates 1 to nJobs permutation;
@@ -262,7 +272,6 @@ shared_ptr<Schedule> LRandNEH::getLRandNEH(const t_job& x) {
         lrCaller.resultSchedule->cleanSchedule();
         shared_ptr_pair_vector pair_vector_lrneh = lrCaller.localLR(initialList, jobTaken, portion); // Possible error
         shared_ptr<Schedule> initialSchedule = pair_vector_lrneh->second;
-
         //NEH Step
         nehCaller.resultSchedule->cleanSchedule();
         initialSchedule = nehCaller.getNEH(initialSchedule, pair_vector_lrneh->first);
@@ -270,9 +279,14 @@ shared_ptr<Schedule> LRandNEH::getLRandNEH(const t_job& x) {
         double thisTotalTime = initialSchedule->getTotalFlowTime();
         if(thisTotalTime < minFlowTime){
             minFlowTime = thisTotalTime;
-            resultSchedule = initialSchedule;
+            resultSchedule = make_shared<Schedule>(*initialSchedule);
         }
     }
     return resultSchedule;
+}
+
+shared_ptr<Schedule> LRandNEH::getConstructive() {
+    t_job x; cin >> x;
+    return getLRandNEH(x);
 }
 

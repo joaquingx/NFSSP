@@ -21,6 +21,7 @@ protected:
 public:
     shared_ptr<Schedule> resultSchedule;
     explicit cHeuristic(const shared_ptr<ProblemInstance>& pInstance);
+    virtual shared_ptr<Schedule> getConstructive() = 0;
     void cleanSchedule() const;
 };
 
@@ -38,6 +39,7 @@ private:
 public:
     shared_ptr<Schedule> getNEH();
     shared_ptr<Schedule> getNEH(const shared_ptr<Schedule>& S, const vector<t_job>& U);
+    shared_ptr<Schedule> getConstructive() override;
 };
 
 
@@ -52,12 +54,14 @@ public:
     shared_ptr_pair_vector localLR(const vector<t_job>& remainedJobs, const t_job& jobTaken, const t_job& uJobs);
     double weightFunction(const t_job& iJob, const t_machine& iMachine) const;
     shared_ptr<Schedule> getLR(const t_job& x); // General x LR's
+    shared_ptr<Schedule> getConstructive() override;
 };
 
 class LRandNEH: public cHeuristic{
     using cHeuristic::cHeuristic;
 public:
     shared_ptr<Schedule> getLRandNEH(const t_job& x);
+    shared_ptr<Schedule> getConstructive() override;
 };
 
 
