@@ -3,9 +3,9 @@
 //
 
 #include <bits/stdc++.h>
-#define N 120
+#define N 110
 #define DIV 10
-#define HEURISTICS 5
+#define HEURISTICS 6
 #define INF 1000000000
 using namespace std;
 
@@ -13,7 +13,7 @@ string pruebas[] = {"20x5", "20x10", "20x20", "50x5", "50x10", "50x20", "100x5",
                     "100x10", "100x20", "200x10", "200x20", "500x20"};
 
 void fillWithZeros(double * arr){
-    for(int i = 0 ;i < 12 ; ++i){
+    for(int i = 0 ;i < N/DIV+1 ; ++i){
         arr[i] = 0;
     }
 }
@@ -24,7 +24,7 @@ void getTimes(){
     int clusters = N/DIV;
     fillWithZeros(rpiHeuristics);
     cout << "Times:\n";
-    cout << "        LR-10    LR-5  LR-NEH-10   LR-NEH-5   NEH\n";
+    cout << "        LR-10    LR-5  LR-NEH-10   LR-NEH-5  ILS NEH\n";
     for(int i = 0 ; i < clusters ; ++i) {
         fillWithZeros(rpiHeuristics);
         for(int k = 0; k < DIV ; ++k) {
@@ -44,7 +44,7 @@ void getTimes(){
         }
         cout << "\n";
     }
-    cout << "LR-10    LR-5  LR-NEH-10   LR-NEH-5   NEH\n";
+    cout << "LR-10    LR-5  LR-NEH-10   LR-NEH-5  ILS    NEH\n";
     for(int i = 0 ; i < HEURISTICS; ++i){
         printf("%.3f ",totalRpiHeuristics[i]/clusters/INF);
     }
@@ -57,7 +57,7 @@ void getRPIs() {
     int clusters = N/DIV;
     fillWithZeros(rpiHeuristics);
     cout << "RPI:\n";
-    cout << "        LR-10    LR-5  LR-NEH-10   LR-NEH-5   NEH\n";
+    cout << "        LR-10    LR-5  LR-NEH-10   LR-NEH-5   ILS     NEH\n";
     for(int i = 0 ; i < clusters ; ++i) {
         fillWithZeros(rpiHeuristics);
         for(int k = 0; k < DIV ; ++k) {
@@ -77,7 +77,7 @@ void getRPIs() {
         }
         cout << "\n";
     }
-    cout << "LR-10    LR-5  LR-NEH-10   LR-NEH-5   NEH\n";
+    cout << "        LR-10    LR-5  LR-NEH-10   LR-NEH-5   ILS     NEH\n";
     for(int i = 0 ; i < HEURISTICS; ++i){
         printf("%.3f ", totalRpiHeuristics[i]/clusters);
     }
@@ -85,7 +85,7 @@ void getRPIs() {
 }
 
 int main(){
-//    getTimes();
-    getRPIs();
+    getTimes();
+//    getRPIs();
     return 0;
 }

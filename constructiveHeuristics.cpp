@@ -280,6 +280,7 @@ shared_ptr<Schedule> LRandNEH::getLRandNEH(const t_job& x) {
         if(thisTotalTime < minFlowTime){
             minFlowTime = thisTotalTime;
             resultSchedule = make_shared<Schedule>(*initialSchedule);
+//            resultSchedule = initialSchedule;
         }
     }
     return resultSchedule;

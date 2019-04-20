@@ -10,8 +10,8 @@
 
 constexpr t_flow_time INF = 2000000000;
 using vNEH = vector< pair< double, t_flow_time > >;
-using shared_ptr_pair_vector = shared_ptr< pair< vector<t_job>,shared_ptr<Schedule> > >;
-using pair_vector = pair< vector<t_job>,shared_ptr<Schedule> >;
+using shared_ptr_pair_vector = shared_ptr< pair< vector<t_job>, shared_ptr<Schedule> > >;
+using pair_vector = pair< vector<t_job>, shared_ptr<Schedule> >;
 
 class cHeuristic{
 protected:
@@ -50,9 +50,9 @@ public:
 //    LR();
     double wTotalMachineiTime(const shared_ptr<Schedule>& S, const pseudoJob& nextElement) const;
     double artificialFlowTime(const shared_ptr<Schedule>& S, const pseudoJob& nextElement, const vector<t_job>& U) const;
+    double weightFunction(const t_job& iJob, const t_machine& iMachine) const;
     double getIndexFunction(const shared_ptr<Schedule>& S, const t_job& iJob, const vector<t_job>& U) const;
     shared_ptr_pair_vector localLR(const vector<t_job>& remainedJobs, const t_job& jobTaken, const t_job& uJobs);
-    double weightFunction(const t_job& iJob, const t_machine& iMachine) const;
     shared_ptr<Schedule> getLR(const t_job& x); // General x LR's
     shared_ptr<Schedule> getConstructive() override;
 };
