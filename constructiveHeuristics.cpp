@@ -195,7 +195,7 @@ double LR::artificialFlowTime(const shared_ptr<Schedule>& S, const pseudoJob& ne
 }
 
 double LR::getIndexFunction(const shared_ptr<Schedule>& S, const t_job& iJob, const vector<t_job>& U) const {
-    double IT,AT,fnc;
+    double IT, AT, fnc;
     IT = wTotalMachineiTime(S, pseudoJob(0, nMachines, iJob));
     // Actual schedule + actual job is creating in artificial flowtime process
     AT = artificialFlowTime(S, pseudoJob(0, nMachines, iJob), U);
@@ -291,3 +291,113 @@ shared_ptr<Schedule> LRandNEH::getConstructive() {
     return getLRandNEH(x);
 }
 
+
+shared_ptr<Schedule> FF::getFF(const t_job &x) {
+
+    vector<t_job> initialList(nJobs);
+
+    generate(initialList.begin(), initialList.end(), []{
+        static t_job i = 0;
+        return i++;
+    });
+
+    auto comp = [&](const t_job& iJob, const t_job& kJob)-> bool{
+        double fnci = this->getIndexFunction(resultSchedule, iJob, initialList);
+        double fnck = this->getIndexFunction(resultSchedule, kJob, initialList);
+        if(fnci == fnck){
+            double ITi = this->idleTime(resultSchedule, pseudoJob(0, nMachines, iJob));
+            double ITk = this->idleTime(resultSchedule, pseudoJob(0, nMachines, kJob));
+            return ITi < ITk;
+        }
+        return fnci < fnck;
+    };
+
+    sort(initialList.begin(), initialList.end(), comp);
+
+    double minFlowTime = 100000000;
+
+    for (t_job jobIndex = 0; jobIndex < x; ++jobIndex) {
+        shared_ptr_pair_vector pair_vector_lr = localFF(initialList, jobIndex, 0);
+        shared_ptr<Schedule> NSchedule = pair_vector_lr->second;
+        double thisTotalTime = NSchedule->getTotalFlowTime();
+        if (thisTotalTime < minFlowTime) {
+            minFlowTime = thisTotalTime;
+            resultSchedule = NSchedule;
+        }
+    }
+    return resultSchedule;
+}
+
+shared_ptr_pair_vector FF::localFF(const vector<t_job> &remainedJobs, const t_job &jobTaken, const t_job &uJobs) {
+
+    shared_ptr<Schedule> S = make_shared<Schedule>(this->resultSchedule->pInstance);
+    vector<t_job> U = remainedJobs;
+    S->addPseudoJob(0, nMachines, U[jobTaken]);
+    U.erase(U.begin() + jobTaken);
+
+    double mFnc, fnc;
+    t_job indexJob;
+
+    while(U.size() > uJobs){
+        mFnc = 20000000000; // TODO: Check non-constant
+        if(U.size() > 1){ // is it really necessary?
+            for(t_job job = 0; job < U.size(); ++job){
+                fnc = getIndexFunction(S, U[job], U);
+                if (mFnc > fnc){
+                    mFnc = fnc;
+                    indexJob = job;
+                }
+            }
+        }
+
+        else {
+            indexJob = 0;
+        }
+        S->addPseudoJob(0, nMachines, U[indexJob]);
+        U.erase(U.begin() + indexJob);
+    }
+
+    return make_shared<pair_vector>(make_pair(U,S));
+
+}
+
+double FF::getIndexFunction(const shared_ptr<Schedule> &S, const t_job &iJob, const vector<t_job> &U) const {
+    double IT, AT, fnc;
+    IT = idleTime(S, pseudoJob(0, nMachines, iJob));
+    // Actual schedule + actual job is creating in artificial flowtime process
+    AT = completionTime(S, pseudoJob(0, nMachines, iJob));
+    fnc = (double(nJobs - S->getSize() - 2)/double(const_a)) * IT + AT;
+    return fnc;
+}
+
+double FF::completionTime(const shared_ptr<Schedule> &S, const pseudoJob &nextElement) const {
+    shared_ptr<Schedule> NS = make_shared<Schedule>(*(S));
+    NS->addPseudoJob(nextElement);
+    return NS->getTotalFlowTime();
+}
+
+double FF::idleTime(const shared_ptr<Schedule> &S, const pseudoJob &nextElement) const {
+    double IT = 0;
+    double kFlow = S->getPermutationFlowTime(0, S->getSize()-1);
+    double lastNewFlowTime = kFlow + instance(0, nextElement.job);
+
+    for(t_machine iMachine = 1; iMachine < nMachines; ++iMachine){
+        double weight = weightFunction(S->getSize()-1, iMachine);
+        kFlow = S->getPermutationFlowTime(iMachine, S->getSize()-1);
+        IT += weight * fmax(lastNewFlowTime - kFlow, 0);
+        lastNewFlowTime = max(lastNewFlowTime, kFlow) + instance(iMachine, nextElement.job);
+    }
+    return IT;
+}
+
+
+double FF::weightFunction(const t_job& iJob, const t_machine& iMachine) const{
+    double dividend = nMachines;
+    double divisor = (iMachine+1) - const_b + (iJob+1) * (nMachines - (iMachine+1) + const_b)/(nJobs-2);
+    return dividend/divisor;
+}
+
+shared_ptr<Schedule> FF::getConstructive() {
+    t_job x; cin >> x;
+    return getFF(x);
+}

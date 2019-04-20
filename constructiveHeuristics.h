@@ -9,6 +9,9 @@
 
 
 constexpr t_flow_time INF = 2000000000;
+constexpr t_job const_a = 4;
+constexpr t_job const_b = 1;
+
 using vNEH = vector< pair< double, t_flow_time > >;
 using shared_ptr_pair_vector = shared_ptr< pair< vector<t_job>, shared_ptr<Schedule> > >;
 using pair_vector = pair< vector<t_job>, shared_ptr<Schedule> >;
@@ -63,6 +66,20 @@ public:
     shared_ptr<Schedule> getLRandNEH(const t_job& x);
     shared_ptr<Schedule> getConstructive() override;
 };
+
+class FF: public cHeuristic{
+    using cHeuristic::cHeuristic;
+public:
+    double idleTime(const shared_ptr<Schedule>& S, const pseudoJob& nextElement) const;
+    double completionTime(const shared_ptr<Schedule>& S, const pseudoJob& nextElement) const;
+    double weightFunction(const t_job& iJob, const t_machine& iMachine) const;
+    double getIndexFunction(const shared_ptr<Schedule>& S, const t_job& iJob, const vector<t_job>& U) const;
+    shared_ptr_pair_vector localFF(const vector<t_job>& remainedJobs, const t_job& jobTaken, const t_job&  uJobs);
+    shared_ptr<Schedule> getFF(const t_job& x);
+    shared_ptr<Schedule> getConstructive() override;
+
+};
+
 
 
 //class FF{

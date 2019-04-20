@@ -40,6 +40,8 @@ void measureConstructive(){
         case 3:
             measureMetaheuristic(pInstance);
             return;
+        case 4:
+            heuristic = make_unique<FF>(pInstance);
             break;
     }
     chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
