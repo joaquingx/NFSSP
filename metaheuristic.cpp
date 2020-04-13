@@ -13,9 +13,10 @@ ILS::ILS(const shared_ptr<ProblemInstance> &pInstance, const t_job &perturbNumbe
         pInstance(pInstance), perturbNumber(perturbNumber), repetitions(repetitions){}
 
 shared_ptr<Schedule> ILS::getMetaheuristic() {
-    LR lrCaller(pInstance);
+//    LR lrCaller(pInstance);
+    FFandNEH ffnehCaller(pInstance);
 
-    shared_ptr<Schedule> resultSchedule = lrCaller.getLR(lr_number); // constructive heuristic
+    shared_ptr<Schedule> resultSchedule = ffnehCaller.getFFandNEH(lr_number); // constructive heuristic
 //    resultSchedule->printPermutationSchedule();
     for(int i = 0; i < max_loop; ++i){
         perturbPermutation(resultSchedule);

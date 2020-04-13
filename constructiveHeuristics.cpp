@@ -401,3 +401,57 @@ shared_ptr<Schedule> FF::getConstructive() {
     t_job x; cin >> x;
     return getFF(x);
 }
+
+// TODO: is there a better way to do this function?, inherits something from LRandNEH maybe
+shared_ptr<Schedule> FFandNEH::getFFandNEH(const t_job& x) {
+    vector<t_job> initialList(nJobs);
+    //generates 1 to nJobs permutation;
+    generate(initialList.begin(), initialList.end(), []{
+        static t_job i = 0;
+        return i++;
+    });
+    FF ffCaller(this->resultSchedule->pInstance);
+    NEH nehCaller(this->resultSchedule->pInstance);
+
+    // Lamba function to sort by index function
+    auto comp = [&](const t_job& iJob,const t_job& kJob)-> bool {
+        double fnci = ffCaller.getIndexFunction(resultSchedule, iJob, initialList);
+        double fnck = ffCaller.getIndexFunction(resultSchedule, kJob, initialList);
+        if(fnci == fnck){
+            double ITi = ffCaller.idleTime(resultSchedule, pseudoJob(0,nMachines,iJob));
+            double ITk = ffCaller.idleTime(resultSchedule, pseudoJob(0,nMachines,kJob));
+            return ITi < ITk;
+        }
+        return fnci < fnck;
+    };
+
+    // Sorting by index function
+    sort(initialList.begin(), initialList.end(), comp);
+
+
+    double minFlowTime = 2000000000;
+    for(t_job i = 0 ; i < x ; ++i){
+        // LR Step
+        t_job jobTaken = initialList[i];
+        t_job portion = nJobs/4;
+        ffCaller.resultSchedule->cleanSchedule();
+        shared_ptr_pair_vector pair_vector_ffneh = ffCaller.localFF(initialList, jobTaken, portion); // Possible error
+        shared_ptr<Schedule> initialSchedule = pair_vector_ffneh->second;
+        //NEH Step
+        nehCaller.resultSchedule->cleanSchedule();
+        initialSchedule = nehCaller.getNEH(initialSchedule, pair_vector_ffneh->first);
+
+        double thisTotalTime = initialSchedule->getTotalFlowTime();
+        if(thisTotalTime < minFlowTime){
+            minFlowTime = thisTotalTime;
+            resultSchedule = make_shared<Schedule>(*initialSchedule);
+//            resultSchedule = initialSchedule;
+        }
+    }
+    return resultSchedule;
+}
+
+shared_ptr<Schedule> FFandNEH::getConstructive() {
+    t_job x; cin >> x;
+    return getFFandNEH(x);
+}

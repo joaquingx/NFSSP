@@ -1,11 +1,9 @@
 #!/bin/bash
 
-tests_path="../taillard/*"
-results_path="../results"
-nfssp_exec="../cmake-build-debug/NFSSP"
-#LR:0; NEH:1; LR-NEH:2
-methods=(0 1 2 3)
-methods_name=(LR NEH LR-NEH META)
+source global_vars.sh
+#LR:0; NEH:1; LR-NEH:2; META:3; FF: 4
+methods=(0 1 2 3 4 5)
+methods_name=(LR NEH LR-NEH META FF FF-NEH)
 sequences=(5 10)
 
 for file_name in ${tests_path};do

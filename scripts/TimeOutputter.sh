@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 
-results_path="../results/*"
-number_heuristics=6
+source global_vars.sh
 index=0
 
-for filename in ${results_path};do
+for filename in ${results_path_out};do
     index=$((index+1))
     awk 'NR==2{printf $4 " "}' ${filename}
-#    echo ${filename}
-    if [[ $((index % ${number_heuristics})) -eq 0  ]]
+    if [[ $((index % ${HEURISTICS})) -eq 0  ]]
     then
         echo ""
     fi

@@ -43,6 +43,9 @@ void measureConstructive(){
         case 4:
             heuristic = make_unique<FF>(pInstance);
             break;
+        case 5:
+            heuristic = make_unique<FFandNEH>(pInstance);
+            break;
     }
     chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     cout << "Total Flowtime = " << heuristic->getConstructive()->getTotalFlowTime() << "\n";

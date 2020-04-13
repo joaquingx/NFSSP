@@ -77,7 +77,13 @@ public:
     shared_ptr_pair_vector localFF(const vector<t_job>& remainedJobs, const t_job& jobTaken, const t_job&  uJobs);
     shared_ptr<Schedule> getFF(const t_job& x);
     shared_ptr<Schedule> getConstructive() override;
+};
 
+class FFandNEH: public cHeuristic{
+    using cHeuristic::cHeuristic;
+public:
+    shared_ptr<Schedule> getFFandNEH(const t_job& x);
+    shared_ptr<Schedule> getConstructive() override;
 };
 
 
